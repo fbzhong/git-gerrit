@@ -138,93 +138,58 @@ And looks like this for people reviewing someone else's changeset:
     abandon
       Abandon the current patch.
 
+### Bash Completion
+
+By referencing the project [git-flow-completion](https://github.com/bobthecow/git-flow-completion), I do implement a bash completion script git-gerrit-completion.bash.
 
 ## Installation
 
-You can either install it locally for your user only or you can install it globally for all users.
-
-First cd into the downloaded directoy into the subdir bin:
-
-	cd git-gerrit/bin/
-
-### Local install
-
-If the directory ~/bin does not exist, create it in your in your home path:
-
-	if [[ ! -d $HOME/bin ]]; then mkdir $HOME/bin; fi
-
-Now check if your $PATH variable already contains that path or add it do ~/.bashrc:
-
-	if [[ ! $PATH =~ $HOME/bin ]]; then echo -e "\nexport PATH=\$PATH:\$HOME/bin" >> $HOME/.bashrc; source $HOME/.bashrc; fi
-
-Finally symlink all files (you need to be in git-gerrit/bin/) and make them executable:
-
-	for i in *; do ln -s `pwd`/$i $HOME/bin/$i; chmod +x $i; done
-
-Check if all worked by running:
-
-	cd ; git gerrit
-
-It will print "git-gerrit can only be run from a git repository." in red (unless your home directory is already a git repository ;) )
-
-### Global install
-
-First become root:
-
-	sudo su
-
-Then you can either create the symlinks like above (make sure to be in git-gerrit bin) or you can cp the files:
-
-    for i in *; do ln -s `pwd`/$i /bin/$i; chmod +x $i; done
-
-or
-
-	for i in *; do cp -u $i /bin/; chmod +x /bin/$i; done
-
-Now quit root:
-
-	exit
-
-Finally check if it worked by running:
-
-	cd ; git gerrit
-
-It will print "git-gerrit can only be run from a git repository." in red (unless your home directory is already a git   repository ;) )
-
-### Homebrew install for Mac OS X
+### Mac OS X
 
     brew install https://raw.github.com/fbzhong/homebrew-library/master/Library/git-gerrit.rb
 
+### Linux
 
-## Bash Completion
-
- Bash completion support for [git-gerrit](https://github.com/fbzhong/git-gerrit)
-
-### Installation
-
- To achieve git-gerrit completion nirvana:
-
-  0. Install git-completion.
-
-  1. Install this file. Either:
-
-     a. Place it in a `bash-completion.d` folder:
-
-        * /etc/bash-completion.d
-        * /usr/local/etc/bash-completion.d
-        * ~/bash-completion.d
-
-     b. Or, copy it somewhere (e.g. ~/.git-gerrit-completion.bash) and put the following line in
-        your .bashrc:
-
-            source ~/.git-gerrit-completion.bash
-
-  2. If you are using Git < 1.7.1: Edit git-completion.sh and add the following line to the giant
-     $command case in _git:
-
-         gerrit)        _git_gerrit ;;
-
+    curl https://raw.github.com/fbzhong/git-gerrit/master/install.sh | bash
 
 ## Contributing
 
 Feel free to fork and send a pull request if you think you've improved anything.
+
+##New BSD License
+
+Copyright (c) 2012, Robin Zhong <fbzhong@gmail.com>
+All rights reserved.
+
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions are met:
+
+    * Redistributions of source code must retain the above copyright
+      notice, this list of conditions and the following disclaimer.
+    * Redistributions in binary form must reproduce the above copyright
+      notice, this list of conditions and the following disclaimer in the
+      documentation and/or other materials provided with the distribution.
+    * Neither the name of the Robin Zhong nor the
+      names of its contributors may be used to endorse or promote products
+      derived from this software without specific prior written permission.
+
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+DISCLAIMED. IN NO EVENT SHALL <COPYRIGHT HOLDER> BE LIABLE FOR ANY
+DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+(INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+## Credit
+
+* [André Arko](https://github.com/indirect/gerrit-tools)
+
+* [Steffen Gebert](https://github.com/StephenKing/gerrit-tools)
+
+* [Philipp Gampe](https://github.com/pgampe/gerrit-tools).
+
+* [Justin Hileman](https://github.com/bobthecow/git-flow-completion)
