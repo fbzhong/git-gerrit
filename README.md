@@ -193,7 +193,7 @@ It will print "git-gerrit can only be run from a git repository." in red (unless
 
 ### Homebrew install for Mac OS X
 
-    brew install --HEAD https://raw.github.com/fbzhong/homebrew-library/master/Library/git-gerrit.rb
+    brew install https://raw.github.com/fbzhong/homebrew-library/master/Library/git-gerrit.rb
 
 
 ## Bash Completion
