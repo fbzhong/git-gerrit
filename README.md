@@ -43,7 +43,7 @@ And looks like this for people reviewing someone else's changeset:
     git gerrit reset
 
 
-## Usage
+### Usage
 
     Usage: git-gerrit [<options>] init
        or: git-gerrit [<options>] merge <branch>
