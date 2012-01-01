@@ -1,0 +1,82 @@
+#!/bin/bash
+
+this=$(basename "$0")
+
+# colors
+RED="\033[0;31m"
+YELLOW="\033[1;33m"
+GREEN="\033[0;32m"
+NO_COLOR="\033[0m"
+BOLD="\033[1m"
+UNDERLINE="\033[4m"
+
+die() {
+	echo -e "${RED}${@}${NO_COLOR}"
+	exit 1
+}
+
+warn() {
+	echo -e "${YELLOW}${@}${NO_COLOR}"
+}
+
+good() {
+	echo -e "${GREEN}${@}${NO_COLOR}"
+}
+
+printShortUsage() {
+	cat << EOF
+Usage: $this GERRIT_SSH COMMAND [ARG ...] [--] [--help (-h)]
+       $this --help
+
+       Example: $this -p 29814 gerrit_ssh_server --help
+       	        $this -p 29814 gerrit_ssh_server create-project -n new.git
+
+EOF
+}
+
+# Check commands
+GIT=$(which git)
+if [[ -z "$GIT" ]]; then
+	die "git is not installed"
+fi
+
+SSH=$(which ssh)
+if [[ -z "$SSH" ]]; then
+	die "ssh is not installed"
+fi
+
+if [ "" = "$1" ] ; then
+	printShortUsage
+	exit 1
+fi
+
+if [ "--help" = "$1" ] ; then
+	printShortUsage
+	exit 0
+fi
+
+is_gerrit_cmd=0
+ssh_options=""
+
+while true; do
+	if [ "1" = "${is_gerrit_cmd}" ] ; then
+		ssh ${ssh_options} gerrit $@
+		exit
+	fi
+
+	arg=$1
+	shift
+
+	ssh_options="${ssh_options} $arg"
+
+	if [ "${arg:0:1}" = "-" ] ; then
+		ssh_options="${ssh_options} $1"
+		shift
+	else
+		is_gerrit_cmd=1
+	fi
+
+done
+
+printShortUsage
+exit 2
