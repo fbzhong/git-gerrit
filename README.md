@@ -96,7 +96,7 @@ And looks like this for people reviewing someone else's changeset:
           status:abandoned
 
       For more information of <search operators>, please refer to the Gerrit Documentation
-      Gerrit Code Review - Searching Changes
+      Gerrit Code Review - Searching Changes http://gerrit.googlecode.com/svn/documentation/2.2.1/user-search.html
 
     apply <change number>
       Applies the latest patch for the change at <change number> on top of the current
