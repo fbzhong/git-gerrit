@@ -47,7 +47,7 @@ And looks like this for people reviewing someone else's changeset:
 
     Usage: git-gerrit [<options>] init
        or: git-gerrit [<options>] merge <branch>
-       or: git-gerrit [<options>] push
+       or: git-gerrit [<options>] push [<repository>] [<refspec>]
        or: git-gerrit [<options>] changes [<search operators>]
        or: git-gerrit [<options>] changes [<change number>]
        or: git-gerrit [<options>] apply <change number>
@@ -65,11 +65,11 @@ And looks like this for people reviewing someone else's changeset:
     merge <branch>
       Merge the current gerrit branch with the <branch>, with squashing commit.
 
-    push
-      Pushes a single patch (or - if confirmed - multiple patches) to gerrit for review.
-      If you are not on a review branch, you need to confirm the branch to push to and
+    push [<repository>] [<refspec>]
+      Pushes a single patch (or - if confirmed - multiple patches) to <repository> <refspec> for review.
+      If you are not on a review branch, you need to confirm the <refspec> to push to and
       you may choose a topic.
-
+    
       If your HEAD is a tracking branch $this will promt to reset it to the remote
       branch after successfully pushing the changeset.
       If you are working on a non-tracking branch, that branch will be left alone.
