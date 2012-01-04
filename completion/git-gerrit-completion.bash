@@ -59,6 +59,10 @@ _git_gerrit ()
 		__git_gerrit_merge
 		return
 		;;
+    push)
+        __git_gerrit_push
+        return
+        ;;
 	*)
 		COMPREPLY=()
 		;;
@@ -70,9 +74,54 @@ __git_gerrit_merge ()
 	__gitcomp "$(__git_gerrit_list_branches)"
 }
 
+__git_gerrit_push ()
+{
+	local cur_="$cur" remote="${words[3]}" refs="${words[4]}"
+
+    if [ -z "$remote" ] ; then
+        __gitcomp "$(__git_remotes)"
+        return
+    fi
+
+    __gitcomp "$(__git_gerrit_list_remote_refs "$remote" "$refs")"
+    return
+}
+
 __git_gerrit_list_branches ()
 {
 	git branch  2>/dev/null | grep -v '*' | sort
+}
+
+__git_gerrit_list_remote_refs ()
+{
+	local cmd i is_hash=y refs_heads="refs/heads/"
+    if [ "$2" = "$refs_heads" ] ; then
+        local is_heads=y
+    fi
+	for i in $(git ls-remote -h "$1" 2>/dev/null); do
+		case "$is_hash,$i" in
+        n,refs/heads/sandbox/*)
+            is_hash=y
+            echo "$i"
+            ;;
+		n,refs/heads/*)
+			is_hash=y
+            if [ "$is_heads" = "y" ] ; then
+                echo "$i"
+            else
+                echo "refs/for/${i#refs/heads/}"
+            fi
+			;;
+		y,*) is_hash=n ;;
+		n,*^{}) is_hash=y ;;
+		n,refs/tags/*) is_hash=y;;
+		n,*) is_hash=y; ;;
+		esac
+	done
+
+    if [ "$is_heads" != "y" ] ; then
+        echo "$refs_heads"
+    fi
 }
 
 # alias __git_find_on_cmdline for backwards compatibility
