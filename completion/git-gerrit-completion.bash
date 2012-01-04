@@ -78,8 +78,13 @@ __git_gerrit_push ()
 {
 	local cur_="$cur" remote="${words[3]}" refs="${words[4]}"
 
-    if [ -z "$remote" ] ; then
+    if [[ -z "$remote" || "$remote" = "$cur_" ]] ; then
         __gitcomp "$(__git_remotes)"
+        return
+    fi
+
+    if [[ "$refs" != "$cur_" ]] ; then
+        COMPREPLY=()
         return
     fi
 
@@ -109,7 +114,7 @@ __git_gerrit_list_remote_refs ()
             if [ "$is_heads" = "y" ] ; then
                 echo "$i"
             else
-                echo "refs/for/${i#refs/heads/}"
+                echo "${i#refs/heads/}"
             fi
 			;;
 		y,*) is_hash=n ;;
