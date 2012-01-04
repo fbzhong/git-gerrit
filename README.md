@@ -142,7 +142,7 @@ And looks like this for people reviewing someone else's changeset:
 
 By referencing the project [git-flow-completion](https://github.com/bobthecow/git-flow-completion), I do implement a bash completion script git-gerrit-completion.bash.
 
-## Installation
+## Installation (Latest Release Version)
 
 ### Mac OS X
 
@@ -151,6 +151,12 @@ By referencing the project [git-flow-completion](https://github.com/bobthecow/gi
 ### Linux
 
     curl https://raw.github.com/fbzhong/git-gerrit/master/install.sh | bash
+
+## Installation (Latest Development Version)
+
+### Mac OS X and Linux
+
+    curl https://raw.github.com/fbzhong/git-gerrit/master/develop.sh | bash
 
 ## Contributing
 
