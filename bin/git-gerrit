@@ -629,7 +629,7 @@ printShortUsage() {
     cat << EOF
 Usage: $this [<options>] init
    or: $this [<options>] merge <branch>
-   or: $this [<options>] push [<remote branch>]
+   or: $this [<options>] push [<repository>] [<refspec>]
    or: $this [<options>] changes [<search operators>]
    or: $this [<options>] changes [<change number>]
    or: $this [<options>] apply <change number>
@@ -666,9 +666,9 @@ DESCRIPTION
   merge <branch>
     Merge the current gerrit branch with the <branch>, with squashing commit.
 
-  push [<remote branch>]
-    Pushes a single patch (or - if confirmed - multiple patches) to <remote branch> for review.
-    If you are not on a review branch, you need to confirm the <gerrit branch> to push to and
+  push [<repository>] [<refspec>]
+    Pushes a single patch (or - if confirmed - multiple patches) to <repository> <refspec> for review.
+    If you are not on a review branch, you need to confirm the <refspec> to push to and
     you may choose a topic.
 
     If your HEAD is a tracking branch $this will promt to reset it to the remote
