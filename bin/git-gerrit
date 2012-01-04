@@ -474,7 +474,7 @@ pushCommit() {
     elif [ "" != "$1" ] ; then
         TRACK=$1
     else
-        local PROMPT_TRACK=1
+        local PROMPT_TRACK=y
     fi
 
     local PUSH_BRANCH=$TRACK
@@ -503,7 +503,7 @@ pushCommit() {
     local change_args=''
 
     if [[ -z "$CHANGE" ]]; then
-        if [ "$PROMPT_TRACK" -eq "1" ]; then
+        if [ "$PROMPT_TRACK" = "y" ] ; then
             read -e -p "Please enter a branch to push to [$TRACK] : " choice
             TRACK=${choice:-$TRACK}
             local PUSH_BRANCH="refs/for/$TRACK"
