@@ -468,6 +468,23 @@ abandonChange() {
 pushCommit() {
     abort_on_bad_repo_state
 
+    if [ "" != "$2" ] ; then
+        REMOTE=$1
+        TRACK=$2
+    elif [ "" != "$1" ] ; then
+        TRACK=$1
+    else
+        local PROMPT_TRACK=1
+    fi
+
+    local PUSH_BRANCH=$TRACK
+
+    if [[ $TRACK != refs/* ]] ; then
+        local PUSH_BRANCH="refs/for/$PUSH_BRANCH"
+    else
+        TRACK=$(echo $TRACK | sed -e 's/refs\/[a-z]*\///')
+    fi
+
     local LOG=$($GIT log --pretty="format:%s" $REMOTE/$TRACK..HEAD)
     local CHANGESETS=$($GIT rev-list $REMOTE/$TRACK..HEAD | wc -l)
     local CHANGESETS=${CHANGESETS//[[:space:]]}
@@ -486,11 +503,14 @@ pushCommit() {
     local change_args=''
 
     if [[ -z "$CHANGE" ]]; then
-        read -e -p "Please enter a branch to push to [$TRACK] : " choice
-        TRACK=${choice:-$TRACK}
-        read -p "Optionally choose a topic [no topic]: " topic
+        if [ "$PROMPT_TRACK" -eq "1" ]; then
+            read -e -p "Please enter a branch to push to [$TRACK] : " choice
+            TRACK=${choice:-$TRACK}
+            local PUSH_BRANCH="refs/for/$TRACK"
+            read -p "Optionally choose a topic [no topic]: " topic
+        fi
+        change_args="$REMOTE HEAD:$PUSH_BRANCH"
 
-        change_args="$REMOTE HEAD:refs/for/$TRACK"
         if [[ -n "$topic" ]]; then
             change_args="$change_args/$topic"
         fi
@@ -609,7 +629,7 @@ printShortUsage() {
     cat << EOF
 Usage: $this [<options>] init
    or: $this [<options>] merge <branch>
-   or: $this [<options>] push
+   or: $this [<options>] push [<remote branch>]
    or: $this [<options>] changes [<search operators>]
    or: $this [<options>] changes [<change number>]
    or: $this [<options>] apply <change number>
@@ -646,17 +666,16 @@ DESCRIPTION
   merge <branch>
     Merge the current gerrit branch with the <branch>, with squashing commit.
 
-  push
-    Pushes a single patch (or - if confirmed - multiple patches) to gerrit for review.
-    If you are not on a review branch, you need to confirm the branch to push to and
+  push [<remote branch>]
+    Pushes a single patch (or - if confirmed - multiple patches) to <remote branch> for review.
+    If you are not on a review branch, you need to confirm the <gerrit branch> to push to and
     you may choose a topic.
 
     If your HEAD is a tracking branch $this will promt to reset it to the remote
     branch after successfully pushing the changeset.
     If you are working on a non-tracking branch, that branch will be left alone.
 
-    If you are on a review branch or if you have specified a change number with -c
-    (see above), the current patch will be added as a new patchset, following
+    If you are on a review branch , the current patch will be added as a new patchset, following
     the same reset rules as above.
 
     NOTE: If the BROWSER environment variable is set, the Gerrit page for the pushed
@@ -754,7 +773,7 @@ while true; do
             exit
             ;;
         push)
-            pushCommit
+            pushCommit $@
             exit
             ;;
         init)
