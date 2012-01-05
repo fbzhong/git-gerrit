@@ -1,8 +1,8 @@
 #!/bin/bash
 
 # package information.
-url="https://github.com/fbzhong/git-gerrit/tarball/v0.1.0"
-md5="9c3bfc1fd59e789f0720e6abd3cf884c"
+url="https://github.com/fbzhong/git-gerrit/tarball/v0.2.0"
+md5="943163c38db55173bc9be981d03fbd8e"
 
 src_bin=bin
 src_completion=completion

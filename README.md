@@ -5,6 +5,16 @@ They are improved and maintained to fit the needs of the [TYPO3](http://typo3.or
 
 This project is forked from my [gerrit-tools](https://github.com/fbzhong/gerrit-tools) repo, which was originally developed by [André Arko](https://github.com/indirect/gerrit-tools), modified by [Steffen Gebert](https://github.com/StephenKing/gerrit-tools) and [Philipp Gampe](https://github.com/pgampe/gerrit-tools).
 
+## Change Logs
+
+    v0.2.0
+        + patchset command.
+        + more bash completion support.
+        + installation scripts.
+        * bug fix.
+
+    v0.1.0 fork from gerrit tools.
+
 ## gerrit-cherry-pick
 
 This is a script that allows you to cherry-pick a particular patch from Gerrit, so that it can be reviewed easily. It comes from Gerrit 2.2.1.
