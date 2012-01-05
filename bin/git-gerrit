@@ -42,7 +42,7 @@ fi
 GERRIT_CHERRY_PICK=$(which gerrit-cherry-pick)
 
 if [[ -z "$GERRIT_CHERRY_PICK" ]]; then
-	die "gerrit-cherry-pick is not installed"
+    die "gerrit-cherry-pick is not installed"
 fi
 
 # creates a new unique output file by using the current process ID
@@ -68,24 +68,24 @@ git() {
     fi
 }
 gerrit-cherry-pick() {
-if [[ "$verbose" = true ]]; then
-	echo -e "+ ${GREEN}gerrit-cherry-pick $@${NO_COLOR}"
-fi
+    if [[ "$verbose" = true ]]; then
+        echo -e "+ ${GREEN}gerrit-cherry-pick $@${NO_COLOR}"
+    fi
 
-if [[ "$run" = true ]]; then
-	$GERRIT_CHERRY_PICK $@ 2>&1 | tee /dev/tty > $GIT_OUTPUT_FILE
-	return ${PIPESTATUS[0]}
-fi
+    if [[ "$run" = true ]]; then
+        $GERRIT_CHERRY_PICK $@ 2>&1 | tee /dev/tty > $GIT_OUTPUT_FILE
+        return ${PIPESTATUS[0]}
+    fi
 }
 ssh() {
-if [[ "$verbose" = true ]]; then
-    echo -e "+ ${GREEN}ssh $@${NO_COLOR}"
-fi
+    if [[ "$verbose" = true ]]; then
+        echo -e "+ ${GREEN}ssh $@${NO_COLOR}"
+    fi
 
-if [[ "$run" = true ]]; then
-    $SSH $@ 2>&1 | tee /dev/tty > $GIT_OUTPUT_FILE
-    return ${PIPESTATUS[0]}
-fi
+    if [[ "$run" = true ]]; then
+        $SSH $@ 2>&1 | tee /dev/tty > $GIT_OUTPUT_FILE
+        return ${PIPESTATUS[0]}
+    fi
 }
 
 trap _cleanup_git_output EXIT
@@ -100,19 +100,19 @@ no_changes () {
 }
 
 is_integer() {
-	[[ "$1" = [0-9]* ]] > /dev/null 2>&1
-	return $?
+    [[ "$1" = [0-9]* ]] > /dev/null 2>&1
+    return $?
 }
 
 is_review_branch() {
-	local branch=$1
-	if [[ "${branch:0:1}" = "r" ]]; then
-		local change=${branch:1}
-		if is_integer $change; then
-			return 0
-		fi
-	fi
-	return 1
+    local branch=$1
+    if [[ "${branch:0:1}" = "r" ]]; then
+        local change=${branch:1}
+        if is_integer $change; then
+            return 0
+        fi
+    fi
+    return 1
 }
 
 ask_yes_no() {
@@ -138,25 +138,25 @@ ask_yes_no() {
 }
 
 get_change_number_from_branch() {
-	if is_review_branch $CURRENT; then
-		CHANGE=${CURRENT:1}
-		if [[ $verbose = true ]]; then
-			good "Using change number $CHANGE from branch name"
-		fi
-		return 0
-	fi
-	return 1
+    if is_review_branch $CURRENT; then
+        CHANGE=${CURRENT:1}
+        if [[ $verbose = true ]]; then
+            good "Using change number $CHANGE from branch name"
+        fi
+        return 0
+    fi
+    return 1
 }
 
 patch_count_for_change() {
-	local change_id=$1
-	local hash=$(($change_id % 100))
-	case $hash in
-		[0-9]) hash="0$hash" ;;
-	esac
+    local change_id=$1
+    local hash=$(($change_id % 100))
+    case $hash in
+        [0-9]) hash="0$hash" ;;
+    esac
 
-	$GIT ls-remote $REMOTE "refs/changes/$hash/$change_id/*" | \
-		sed 's/.*\///g' | sort -n | tail -n1
+    $GIT ls-remote $REMOTE "refs/changes/$hash/$change_id/*" | \
+        sed 's/.*\///g' | sort -n | tail -n1
 }
 
 getGerritServerAndProject() {
@@ -216,252 +216,267 @@ getBranchInfo() {
     fi
 
     if [[ -z "$TRACK" ]]; then
-		if [[ -e "$GIT_DIR/TRACK" ]]; then
-			TRACK=$(cat "$GIT_DIR/TRACK")
-		elif [[ -z "$TRACK" ]]; then
-			TRACK=$CURRENT
-		fi
+        if [[ -e "$GIT_DIR/TRACK" ]]; then
+            TRACK=$(cat "$GIT_DIR/TRACK")
+        elif [[ -z "$TRACK" ]]; then
+            TRACK=$CURRENT
+        fi
     fi
 }
 
 # git gerrit apply 100
 applyChange() {
-	abort_on_bad_repo_state
+    abort_on_bad_repo_state
 
-	# create a new branch based on the current tracking branch to work in
-	local branch=r$CHANGE
-	$GIT branch -D $branch 2>/dev/null 1>&2
-	git checkout -b $branch $TRACK ||
-		die "Unable to create a new branch '$branch'"
+    # create a new branch based on the current tracking branch to work in
+    local branch=r$CHANGE
+    $GIT branch -D $branch 2>/dev/null 1>&2
+    git checkout -b $branch $TRACK ||
+        die "Unable to create a new branch '$branch'"
 
-	# apply the change to the new branch
-	gerrit-cherry-pick $REMOTE $CHANGE ||
-		die "Unable to apply ±$CHANGE on top of $TRACK"
+    # apply the change to the new branch
+    gerrit-cherry-pick $REMOTE $CHANGE ||
+        die "Unable to apply ±$CHANGE on top of $TRACK"
 
     # track original branch.
-	echo "$TRACK" > "$GIT_DIR/TRACK"
+    echo "$TRACK" > "$GIT_DIR/TRACK"
 
-	if [[ "$verbose" = true ]]; then
-		good "Successfully cherry-picked ±$CHANGE so you can begin reviewing it"
-	fi
+    if [[ "$verbose" = true ]]; then
+        good "Successfully cherry-picked ±$CHANGE so you can begin reviewing it"
+    fi
 }
 
 # git gerrit reset
 resetChange() {
-	if [[ "$1" == "-f" ]]; then
-		git reset --hard
-	else
-		abort_on_bad_repo_state
-	fi
+    if [[ "$1" == "-f" ]]; then
+        git reset --hard
+    else
+        abort_on_bad_repo_state
+    fi
 
-	# clean up after gerrit-cherry-pick if it failed
-	rm -rf "$GIT_DIR/rebase-gerrit"
-	# clean up TRACK file
-	rm -rf "$GIT_DIR/TRACK"
+    # clean up after gerrit-cherry-pick if it failed
+    rm -rf "$GIT_DIR/rebase-gerrit"
+    # clean up TRACK file
+    rm -rf "$GIT_DIR/TRACK"
 
-	if [[ ${CURRENT:0:1} == "r" ]] && is_integer ${CURRENT:1}; then
-		git checkout $TRACK && git branch -D $CURRENT ||
-			die "Unable to close the review branch $CURRENT"
-	else
-		die "We are not on a review branch ($CURRENT)"
-	fi
+    if [[ ${CURRENT:0:1} == "r" ]] && is_integer ${CURRENT:1}; then
+        git checkout $TRACK && git branch -D $CURRENT ||
+            die "Unable to close the review branch $CURRENT"
+    else
+        die "We are not on a review branch ($CURRENT)"
+    fi
 }
 
 rebaseChange() {
-	abort_on_bad_repo_state
+    abort_on_bad_repo_state
 
-	if [[ -z "$CHANGE" ]]; then
-		printShortUsage
-		die "Please provide a change number to rebase."
-	fi
+    if [[ -z "$CHANGE" ]]; then
+        printShortUsage
+        die "Please provide a change number to rebase."
+    fi
 
-	if ! is_review_branch $CURRENT; then
-		# if not already on a review branch, fetch and check it out
-		applyChange
-	fi
+    if ! is_review_branch $CURRENT; then
+        # if not already on a review branch, fetch and check it out
+        applyChange
+    fi
 
-	# try to push this patch along
-	pushCommit
+    # try to push this patch along
+    pushCommit
 
-	# reset if we weren't already on a review branch
-	if ! is_review_branch $CURRENT; then
-		resetChange
-	fi
+    # reset if we weren't already on a review branch
+    if ! is_review_branch $CURRENT; then
+        resetChange
+    fi
 }
 
 updateChange() {
-	if ! is_review_branch $CURRENT; then
-		warn "$CURRENT is not a review branch"
-		printUsage
-		exit 2
-	fi
+    if ! is_review_branch $CURRENT; then
+        warn "$CURRENT is not a review branch"
+        printUsage
+        exit 2
+    fi
 
-	abort_on_bad_repo_state
+    abort_on_bad_repo_state
 
-	CHANGE=${CURRENT:1}
-	resetChange
+    CHANGE=${CURRENT:1}
+    resetChange
     applyChange
 }
 
+showPatchSetDiff() {
+    get_change_number_from_branch ||
+        die "Unable to get change number from $CURRENT"
+
+    local params=($@)
+    local commit=${params[${#params[@]}-1]}
+    if [[ $commit = --* ]] ; then
+        local commit=HEAD
+    else
+        unset params[${#params[@]}-1]
+    fi
+
+    $GIT diff $params $TRACK..$commit
+}
+
 diffPatches() {
-	get_change_number_from_branch ||
-		die "Unable to get change number from $CURRENT"
+    get_change_number_from_branch ||
+        die "Unable to get change number from $CURRENT"
 
-	local change=$CHANGE
-	local changeref=refs/remotes/changes/${change:(-2)}/$change
+    local change=$CHANGE
+    local changeref=refs/remotes/changes/${change:(-2)}/$change
 
-	case $# in
-		0)
-			local patch2=$(patch_count_for_change $change)
-			local patch1=$((patch2 - 1))
-			;;
-		1)
-			local patch2=$(patch_count_for_change $change)
-			local patch1=$1
-			;;
-		2)
-			local patch1=$1
-			local patch2=$2
-			;;
-		3)
-			local change=$1
-			local patch1=$2
-			local patch2=$3
-			;;
-		*)
-			printShortUsage
-			die "too many arguments"
-			;;
-	esac
+    case $# in
+        0)
+            local patch2=$(patch_count_for_change $change)
+            local patch1=$((patch2 - 1))
+            ;;
+        1)
+            local patch2=$(patch_count_for_change $change)
+            local patch1=$1
+            ;;
+        2)
+            local patch1=$1
+            local patch2=$2
+            ;;
+        3)
+            local change=$1
+            local patch1=$2
+            local patch2=$3
+            ;;
+        *)
+            printShortUsage
+            die "too many arguments"
+            ;;
+    esac
 
-	if [[ "$patch1" = "$patch2" ]] || [[ "$patch1" = 0 ]]; then
-		die "Only one patchset--nothing to diff!"
-	fi
+    if [[ "$patch1" = "$patch2" ]] || [[ "$patch1" = 0 ]]; then
+        die "Only one patchset--nothing to diff!"
+    fi
 
-	if [[ "$verbose" = true ]]; then
-		good "Diffing patchset $patch1 vs patchset $patch2"
-	fi
+    if [[ "$verbose" = true ]]; then
+        good "Diffing patchset $patch1 vs patchset $patch2"
+    fi
 
-	local branch1="r$change,$patch1"
-	local branch2="r$change,$patch2"
+    local branch1="r$change,$patch1"
+    local branch2="r$change,$patch2"
 
-	# create a branch for patch1
-	git checkout -b $branch1 $TRACK >/dev/null 2>&1 ||
-		die "Unable to create a new branch '$branch1'"
-	gerrit-cherry-pick $REMOTE $change/$patch1 >/dev/null 2>&1 ||
-		die "Unable to apply ±$branch1 on top of $TRACK"
+    # create a branch for patch1
+    git checkout -b $branch1 $TRACK >/dev/null 2>&1 ||
+        die "Unable to create a new branch '$branch1'"
+    gerrit-cherry-pick $REMOTE $change/$patch1 >/dev/null 2>&1 ||
+        die "Unable to apply ±$branch1 on top of $TRACK"
 
-	# create a branch for patch2
-	git checkout -b $branch2 $TRACK >/dev/null 2>&1 ||
-		die "Unable to create a new branch '$branch2'"
-	gerrit-cherry-pick $REMOTE $change/$patch2 >/dev/null 2>&1 ||
-		die "Unable to apply ±$branch2 on top of $TRACK"
+    # create a branch for patch2
+    git checkout -b $branch2 $TRACK >/dev/null 2>&1 ||
+        die "Unable to create a new branch '$branch2'"
+    gerrit-cherry-pick $REMOTE $change/$patch2 >/dev/null 2>&1 ||
+        die "Unable to apply ±$branch2 on top of $TRACK"
 
-	# actually show the diff
-	git diff --src-prefix=$branch1: --dst-prefix=$branch2: --color $branch1 $branch2 > $GIT_OUTPUT_FILE
-	less -rf $GIT_OUTPUT_FILE
-	rm -f $GIT_OUTPUT_FILE
+    # actually show the diff
+    git diff --src-prefix=$branch1: --dst-prefix=$branch2: --color $branch1 $branch2 > $GIT_OUTPUT_FILE
+    less -rf $GIT_OUTPUT_FILE
+    rm -f $GIT_OUTPUT_FILE
 
-	git checkout "$CURRENT" >/dev/null 2>&1 ||
-		die "Unable to switch back to $CURRENT"
+    git checkout "$CURRENT" >/dev/null 2>&1 ||
+        die "Unable to switch back to $CURRENT"
 
-	git branch -D $branch1 $branch2 >/dev/null 2>&1 ||
-		die "Unable to delete temporary patch branches"
+    git branch -D $branch1 $branch2 >/dev/null 2>&1 ||
+        die "Unable to delete temporary patch branches"
 }
 
 reviewChange() {
-	if is_integer $CHANGE; then
-		local PATCH=$(patch_count_for_change $CHANGE)
-	else
-		die "You must be on a review branch"
-	fi
+    if is_integer $CHANGE; then
+        local PATCH=$(patch_count_for_change $CHANGE)
+    else
+        die "You must be on a review branch"
+    fi
 
     getGerritServerAndProject
 
-	local LOG=$($GIT log --pretty="format:%s" $REMOTE/$TRACK..HEAD)
-	good "Reviewing '$LOG'..."
+    local LOG=$($GIT log --pretty="format:%s" $REMOTE/$TRACK..HEAD)
+    good "Reviewing '$LOG'..."
 
-	local zero="0"
+    local zero="0"
 
-	read -e -p "Verified (-1..+1) [0] : " VERIFIED
-	VERIFIED="${VERIFIED:-$zero}"
-	read -e -p "Code review (-2..+2) [0] : " CODE_REVIEW
-	CODE_REVIEW="${CODE_REVIEW:-"$zero"}"
+    read -e -p "Verified (-1..+1) [0] : " VERIFIED
+    VERIFIED="${VERIFIED:-$zero}"
+    read -e -p "Code review (-2..+2) [0] : " CODE_REVIEW
+    CODE_REVIEW="${CODE_REVIEW:-"$zero"}"
 
-	echo "You may supply a message. Hit return once your are done."
-	read -e -p "Message: " MESSAGE
+    echo "You may supply a message. Hit return once your are done."
+    read -e -p "Message: " MESSAGE
 
-	local CMD="$host $port gerrit review"
-	CMD="$CMD --verified=$VERIFIED"
-	CMD="$CMD --code-review=$CODE_REVIEW"
-	CMD="$CMD --project=$project $CHANGE,$PATCH"
-	if [[ -n $MESSAGE ]]; then
-		CMD="$CMD --message=\"$MESSAGE\""
-	fi
+    local CMD="$host $port gerrit review"
+    CMD="$CMD --verified=$VERIFIED"
+    CMD="$CMD --code-review=$CODE_REVIEW"
+    CMD="$CMD --project=$project $CHANGE,$PATCH"
+    if [[ -n $MESSAGE ]]; then
+        CMD="$CMD --message=\"$MESSAGE\""
+    fi
 
-	ssh $CMD
+    ssh $CMD
 
-	if ask_yes_no "Reset review branch?" "n"; then
-		resetChange
-	fi
+    if ask_yes_no "Reset review branch?" "n"; then
+        resetChange
+    fi
 }
 
 submitChange() {
-	if is_integer $CHANGE; then
-		local PATCH=$(patch_count_for_change $CHANGE)
-	else
-		die "You must be on a review branch"
-	fi
+    if is_integer $CHANGE; then
+        local PATCH=$(patch_count_for_change $CHANGE)
+    else
+        die "You must be on a review branch"
+    fi
 
     getGerritServerAndProject
 
-	local LOG=$($GIT log --pretty="format:%s" $REMOTE/$TRACK..HEAD)
-	good "Submiting '$LOG'..."
+    local LOG=$($GIT log --pretty="format:%s" $REMOTE/$TRACK..HEAD)
+    good "Submiting '$LOG'..."
 
-	echo "You may supply a message. Hit return once your are done."
-	read -e -p "Message: " MESSAGE
+    echo "You may supply a message. Hit return once your are done."
+    read -e -p "Message: " MESSAGE
 
-	local CMD="$host $port gerrit review"
-	CMD="$CMD --submit"
-	CMD="$CMD --project=$project $CHANGE,$PATCH"
-	if [[ -n $MESSAGE ]]; then
-		CMD="$CMD --message=\"$MESSAGE\""
-	fi
+    local CMD="$host $port gerrit review"
+    CMD="$CMD --submit"
+    CMD="$CMD --project=$project $CHANGE,$PATCH"
+    if [[ -n $MESSAGE ]]; then
+        CMD="$CMD --message=\"$MESSAGE\""
+    fi
 
-	ssh $CMD
+    ssh $CMD
 
-	if ask_yes_no "Reset review branch?" "y"; then
-		resetChange
-	fi
+    if ask_yes_no "Reset review branch?" "y"; then
+        resetChange
+    fi
 }
 
 abandonChange() {
-	if is_integer $CHANGE; then
-		local PATCH=$(patch_count_for_change $CHANGE)
-	else
-		die "You must be on a review branch"
-	fi
+    if is_integer $CHANGE; then
+        local PATCH=$(patch_count_for_change $CHANGE)
+    else
+        die "You must be on a review branch"
+    fi
 
     getGerritServerAndProject
 
-	local LOG=$($GIT log --pretty="format:%s" $REMOTE/$TRACK..HEAD)
-	good "Abandoning '$LOG'..."
+    local LOG=$($GIT log --pretty="format:%s" $REMOTE/$TRACK..HEAD)
+    good "Abandoning '$LOG'..."
 
-	echo "You may supply a message. Hit return once your are done."
-	read -e -p "Message: " MESSAGE
+    echo "You may supply a message. Hit return once your are done."
+    read -e -p "Message: " MESSAGE
 
-	local CMD="$host $port gerrit review"
-	CMD="$CMD --abandon"
-	CMD="$CMD --project=$project $CHANGE,$PATCH"
-	if [[ -n $MESSAGE ]]; then
-		CMD="$CMD --message=\"$MESSAGE\""
-	fi
+    local CMD="$host $port gerrit review"
+    CMD="$CMD --abandon"
+    CMD="$CMD --project=$project $CHANGE,$PATCH"
+    if [[ -n $MESSAGE ]]; then
+        CMD="$CMD --message=\"$MESSAGE\""
+    fi
 
-	ssh $CMD
+    ssh $CMD
 
-	if ask_yes_no "Reset review branch?" "y"; then
-		resetChange
-	fi
+    if ask_yes_no "Reset review branch?" "y"; then
+        resetChange
+    fi
 }
 
 # git gerrit push
@@ -636,6 +651,7 @@ Usage: $this [<options>] init
    or: $this [<options>] reset [-f]
    or: $this [<options>] update
    or: $this [<options>] rebase <change number>
+   or: $this [<options>] patchset [<git-diff options>] [<commit>]
    or: $this [<options>] diff <patchset1> [<patchset2>]
    or: $this [<options>] review
    or: $this [<options>] submit
@@ -719,6 +735,10 @@ DESCRIPTION
     against tracking branch, then submits it as a new patch to that change.
     This helps deal with Gerrit's "Your change could not be merged due to a path
     conflict" error message.
+
+  patchset [<git-diff options>] [<commit>]
+    Display a diff between the top of previous branch and <commit>. <commit> will
+    be HEAD when <commit> is not specified.
 
   diff [<patch number> [<patch number>]]
     Depending of the number of arguments, displays a diff of
@@ -804,6 +824,10 @@ while true; do
                 die "Only -f may be use as an argument for reset"
             fi
             resetChange $1
+            exit
+            ;;
+        patchset)
+            showPatchSetDiff $@
             exit
             ;;
         diff)

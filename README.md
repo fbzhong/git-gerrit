@@ -54,6 +54,7 @@ And looks like this for people reviewing someone else's changeset:
        or: git-gerrit [<options>] reset [-f]
        or: git-gerrit [<options>] update
        or: git-gerrit [<options>] rebase <change number>
+       or: git-gerrit [<options>] patchset [<git-diff options>] [<commit>]
        or: git-gerrit [<options>] diff <patchset1> [<patchset2>]
        or: git-gerrit [<options>] review
        or: git-gerrit [<options>] submit
@@ -69,7 +70,7 @@ And looks like this for people reviewing someone else's changeset:
       Pushes a single patch (or - if confirmed - multiple patches) to <repository> <refspec> for review.
       If you are not on a review branch, you need to confirm the <refspec> to push to and
       you may choose a topic.
-    
+
       If your HEAD is a tracking branch $this will promt to reset it to the remote
       branch after successfully pushing the changeset.
       If you are working on a non-tracking branch, that branch will be left alone.
@@ -120,6 +121,10 @@ And looks like this for people reviewing someone else's changeset:
       This helps deal with Gerrit's "Your change could not be merged due to a path
       conflict" error message.
 
+    patchset [<git-diff options>] [<commit>]
+        Display a diff between the top of previous branch and <commit>. <commit> will
+        be HEAD when <commit> is not specified.
+
     diff [<patch number> [<patch number>]]
       Depending of the number of arguments, displays a diff of
         (0) the last two patchsets.
@@ -157,7 +162,7 @@ By referencing the project [git-flow-completion](https://github.com/bobthecow/gi
 ### Mac OS X and Linux
 
     curl https://raw.github.com/fbzhong/git-gerrit/master/develop.sh | bash
-    
+
 or clone to local, then
 
     bash install_local.sh
