@@ -157,6 +157,10 @@ By referencing the project [git-flow-completion](https://github.com/bobthecow/gi
 ### Mac OS X and Linux
 
     curl https://raw.github.com/fbzhong/git-gerrit/master/develop.sh | bash
+    
+or clone to local, then
+
+    bash install_local.sh
 
 ## Contributing
 
