@@ -97,9 +97,9 @@ __git_gerrit_list_branches ()
 	git branch  2>/dev/null | grep -v '*' | sort
 }
 
-__git_gerrit_list_remote_refs ()
+__git_gerrit_list_remote_refs_by_is_remote ()
 {
-	local cmd i is_hash=y
+	local i is_hash=y
 	for i in $(git ls-remote -h "$1" 2>/dev/null); do
 		case "$is_hash,$i" in
         n,refs/heads/sandbox/*)
@@ -116,6 +116,23 @@ __git_gerrit_list_remote_refs ()
 		n,refs/tags/*) is_hash=y;;
 		n,*) is_hash=y; ;;
 		esac
+	done
+}
+
+__git_gerrit_list_remote_refs ()
+{
+	local i remote="$1" cur_refs="$2" refs_heads="refs/heads/"
+
+	for i in $(git branch -r 2>/dev/null | grep "$remote" | grep -v "\->"); do
+        echo "${i/#$remote/refs/heads}"
+
+        case "$i" in
+        $remote/sandbox/*)
+            ;;
+        *)
+            echo "${i#$remote\/}"
+            ;;
+        esac
 	done
 }
 
