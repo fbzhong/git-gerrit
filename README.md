@@ -30,6 +30,9 @@ And looks like this for people reviewing someone else's changeset:
     // apply change for review
     git gerrit apply 123
 
+    // show patchset diff.
+    git gerrit patchset
+
     // verify...
     rake
 
