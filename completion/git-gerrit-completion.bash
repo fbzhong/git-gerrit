@@ -99,10 +99,7 @@ __git_gerrit_list_branches ()
 
 __git_gerrit_list_remote_refs ()
 {
-	local cmd i is_hash=y refs_heads="refs/heads/"
-    if [ "$2" = "$refs_heads" ] ; then
-        local is_heads=y
-    fi
+	local cmd i is_hash=y
 	for i in $(git ls-remote -h "$1" 2>/dev/null); do
 		case "$is_hash,$i" in
         n,refs/heads/sandbox/*)
@@ -111,11 +108,8 @@ __git_gerrit_list_remote_refs ()
             ;;
 		n,refs/heads/*)
 			is_hash=y
-            if [ "$is_heads" = "y" ] ; then
-                echo "$i"
-            else
-                echo "${i#refs/heads/}"
-            fi
+            echo "$i"
+            echo "${i#refs/heads/}"
 			;;
 		y,*) is_hash=n ;;
 		n,*^{}) is_hash=y ;;
@@ -123,10 +117,6 @@ __git_gerrit_list_remote_refs ()
 		n,*) is_hash=y; ;;
 		esac
 	done
-
-    if [ "$is_heads" != "y" ] ; then
-        echo "$refs_heads"
-    fi
 }
 
 # alias __git_find_on_cmdline for backwards compatibility
