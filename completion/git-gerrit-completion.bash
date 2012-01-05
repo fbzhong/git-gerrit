@@ -70,7 +70,7 @@ _git_gerrit ()
         return
         ;;
     patchset)
-        _git_diff
+        __git_gerrit_patchset
         return
         ;;
     *)
@@ -99,6 +99,22 @@ __git_gerrit_push ()
     fi
 
     __gitcomp "$(__git_gerrit_list_remote_refs "$remote" "$refs")"
+    return
+}
+
+__git_gerrit_patchset()
+{
+    local cur_="$cur"
+    local params=(${words[@]})
+    local commit=${params[${#params[@]}-1]}
+    local params_len=${#params[@]}
+
+    if [[ "$params_len" -gt "3" && "$cur_" != "$commit" && $commit != -* ]] ; then
+        COMPREPLY=()
+        return
+    fi
+
+    __gitcomp "HEAD $__git_diff_common_options"
     return
 }
 

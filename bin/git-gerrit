@@ -308,14 +308,25 @@ showPatchSetDiff() {
         die "Unable to get change number from $CURRENT"
 
     local params=($@)
+    local params_len=${#params[@]}
+
+    if [ "$params_len" -eq "0" ] ; then
+        local params=($params HEAD)
+    fi
+
     local commit=${params[${#params[@]}-1]}
+
     if [[ $commit = --* ]] ; then
         local commit=HEAD
     else
         unset params[${#params[@]}-1]
     fi
 
-    $GIT diff $params $TRACK..$commit
+    local args="diff $params $TRACK..$commit"
+    if [[ "$verbose" = true ]]; then
+        echo -e "+ ${GREEN}git $args${NO_COLOR}"
+    fi
+    $GIT $args
 }
 
 diffPatches() {
