@@ -98,8 +98,12 @@ __git_gerrit_push ()
         return
     fi
 
-    __gitcomp "$(__git_gerrit_list_remote_refs "$remote" "$refs")"
-    return
+    if __git_gerrit_get_change_number_from_current_branch ; then
+        # only push to refs/changes.
+        __gitcomp "refs/changes/$__git_gerrit_change"
+    else
+        __gitcomp "$(__git_gerrit_list_remote_refs "$remote" "$refs")"
+    fi
 }
 
 __git_gerrit_patchset()
@@ -160,6 +164,19 @@ __git_gerrit_list_remote_refs ()
             ;;
         esac
     done
+}
+
+__git_gerrit_get_change_number_from_current_branch ()
+{
+    local branch=$(git symbolic-ref -q HEAD)
+    local branch=${branch#refs/heads/}
+    if [[ "${branch:0:1}" = "r" ]]; then
+        __git_gerrit_change=${branch:1}
+        if [[ "$__git_gerrit_change" = [0-9]* ]] ; then
+            return 0
+        fi
+    fi
+    return 1
 }
 
 # alias __git_find_on_cmdline for backwards compatibility

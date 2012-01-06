@@ -137,6 +137,25 @@ ask_yes_no() {
     done
 }
 
+# gerrit track file.
+GERRIT_TRACK="${GIT_DIR}/GERRIT_TRACK"
+
+set_track() {
+    local branch="$1" track="$2" track_commit="$3"
+
+    remove_track "$branch"
+
+    echo "$branch:$track:$track_commit" >> $GERRIT_TRACK
+}
+
+remove_track() {
+    if [ ! -e "$GERRIT_TRACK" ] ; then
+        return
+    fi
+    local branch="${1:-$CURRENT}"
+    sed -i '' -e "/$branch:/d" "$GERRIT_TRACK"
+}
+
 get_change_number_from_branch() {
     if is_review_branch $CURRENT; then
         CHANGE=${CURRENT:1}
@@ -216,11 +235,15 @@ getBranchInfo() {
     fi
 
     if [[ -z "$TRACK" ]]; then
-        if [[ -e "$GIT_DIR/TRACK" ]]; then
-            TRACK=$(cat "$GIT_DIR/TRACK")
-        elif [[ -z "$TRACK" ]]; then
+        if [[ -e "$GERRIT_TRACK" ]]; then
+            local data=($(fgrep "$CURRENT:" "$GERRIT_TRACK" | awk -F: '{print $2" "$3}'))
+            TRACK=${data[0]}
+            TRACK_COMMIT=${data[1]}
+        fi
+        if [[ -z "$TRACK" ]]; then
             TRACK=$CURRENT
         fi
+        ORIG_TRACK=$TRACK
     fi
 }
 
@@ -234,12 +257,13 @@ applyChange() {
     git checkout -b $branch $TRACK ||
         die "Unable to create a new branch '$branch'"
 
-    # apply the change to the new branch
-    gerrit-cherry-pick $REMOTE $CHANGE ||
-        die "Unable to apply ±$CHANGE on top of $TRACK"
-
     # track original branch.
-    echo "$TRACK" > "$GIT_DIR/TRACK"
+    set_track $branch $TRACK "$($GIT rev-parse $TRACK)"
+
+    # apply the change to the new branch
+    local patch="$(patch_count_for_change $CHANGE)"
+    gerrit-cherry-pick $REMOTE $CHANGE/$patch ||
+        die "Unable to apply ±$CHANGE/$patch on top of $TRACK"
 
     if [[ "$verbose" = true ]]; then
         good "Successfully cherry-picked ±$CHANGE so you can begin reviewing it"
@@ -256,8 +280,9 @@ resetChange() {
 
     # clean up after gerrit-cherry-pick if it failed
     rm -rf "$GIT_DIR/rebase-gerrit"
+
     # clean up TRACK file
-    rm -rf "$GIT_DIR/TRACK"
+    remove_track "$CURRENT"
 
     if [[ ${CURRENT:0:1} == "r" ]] && is_integer ${CURRENT:1}; then
         git checkout $TRACK && git branch -D $CURRENT ||
@@ -300,6 +325,7 @@ updateChange() {
 
     CHANGE=${CURRENT:1}
     resetChange
+    TRACK="$ORIG_TRACK"
     applyChange
 }
 
@@ -412,7 +438,7 @@ reviewChange() {
     read -e -p "Verified (-1..+1) [0] : " VERIFIED
     VERIFIED="${VERIFIED:-$zero}"
     read -e -p "Code review (-2..+2) [0] : " CODE_REVIEW
-    CODE_REVIEW="${CODE_REVIEW:-"$zero"}"
+    CODE_REVIEW="${CODE_REVIEW:-$zero}"
 
     echo "You may supply a message. Hit return once your are done."
     read -e -p "Message: " MESSAGE
@@ -494,54 +520,73 @@ abandonChange() {
 pushCommit() {
     abort_on_bad_repo_state
 
-    if [ "" != "$2" ] ; then
-        REMOTE=$1
-        TRACK=$2
-    elif [ "" != "$1" ] ; then
-        TRACK=$1
-    else
-        local PROMPT_TRACK=y
+    local remote="$1" refs="$2" change="$CHANGE" current="$CURRENT" track
+    local prompt_track=n
+
+    # parse remote and refs parameters.
+    if [ -z "$remote" ] ; then
+        prompt_track=y
+        remote="$REMOTE"
+        if [ -n "$CHANGE" ] ; then
+            refs="refs/changes/$CHANGE"
+        else
+            refs="refs/for/$TRACK"
+        fi
+    elif [ -z "$refs" ] ; then
+        refs="$1"
+        remote="$REMOTE"
+    elif [[ $refs != refs/* ]] ; then
+        refs="refs/for/$refs"
     fi
 
-    local PUSH_BRANCH=$TRACK
-
-    if [[ $TRACK != refs/* ]] ; then
-        local PUSH_BRANCH="refs/for/$PUSH_BRANCH"
+    # parse the track and prompt message from refs.
+    if [[ $refs == refs/changes/* ]] ; then
+        track=$TRACK
+        prompt_track=n
     else
-        TRACK=$(echo $TRACK | sed -e 's/refs\/[a-z]*\///')
+        track="$(echo $TRACK | sed -e 's/refs\/[a-z]*\///')"
     fi
 
-    local LOG=$($GIT log --pretty="format:%s" $REMOTE/$TRACK..HEAD)
-    local CHANGESETS=$($GIT rev-list $REMOTE/$TRACK..HEAD | wc -l)
-    local CHANGESETS=${CHANGESETS//[[:space:]]}
+    if [ "$prompt_track" = "y" ] ; then
+        read -e -p "Please enter a branch to push to [$track] : " choice
+        track=${choice:-$track}
+        refs="refs/for/$track"
+        read -p "Optionally choose a topic [no topic]: " topic
+    fi
+
+    if [[ -n "$change" && "$refs" != "refs/changes/$change" ]] ; then
+        die "You can only push to refs/changes/$change in review branch."
+    fi
+
+    if [[ -n "$change" ]] ; then
+        # squash commits for submit change patch set.
+        #$GIT branch -f "$current.head"
+
+        local msg="$($GIT log --pretty=format:'%B' $track..HEAD)"
+
+        $GIT reset --soft $track
+        $GIT commit -m "$msg"
+    fi
+
+    local log=$($GIT log --pretty="format:%s" $remote/$track..HEAD)
+    local changesets=$($GIT rev-list $remote/$track..HEAD | wc -l)
+    local changesets=${changesets//[[:space:]]}
 
     if [[ "$run" = true ]]; then
-        if [[ "$CHANGESETS" = "0" ]]; then
+        if [[ "$changesets" = "0" ]]; then
             die "You have no changes to review. Are you on the right branch?"
-        elif [[ "$CHANGESETS" != "1" ]]; then
-            warn "You have $CHANGESETS changes, but you should only push one at a time. Did you forget to squash your commits?"
+        elif [[ "$changesets" != "1" ]]; then
+            warn "You have $changesets changes, but you should only push one at a time. Did you forget to squash your commits?"
             if ! ask_yes_no "Continue?"; then
                 die "Existing"
             fi
         fi
     fi
 
-    local change_args=''
+    local change_args="$remote HEAD:$refs"
 
-    if [[ -z "$CHANGE" ]]; then
-        if [ "$PROMPT_TRACK" = "y" ] ; then
-            read -e -p "Please enter a branch to push to [$TRACK] : " choice
-            TRACK=${choice:-$TRACK}
-            local PUSH_BRANCH="refs/for/$TRACK"
-            read -p "Optionally choose a topic [no topic]: " topic
-        fi
-        change_args="$REMOTE HEAD:$PUSH_BRANCH"
-
-        if [[ -n "$topic" ]]; then
-            change_args="$change_args/$topic"
-        fi
-    else
-        change_args="$REMOTE HEAD:refs/changes/$CHANGE"
+    if [[ -n "$topic" ]]; then
+        change_args="$change_args/$topic"
     fi
 
     git push $change_args ||
@@ -549,9 +594,17 @@ pushCommit() {
 
     git_push_output=$(test -f $GIT_OUTPUT_FILE && cat $GIT_OUTPUT_FILE)
 
-    if [[ "$CURRENT" = "$TRACK" ]] && ask_yes_no "Reset to $REMOTE/$TRACK?" "n"; then
-       git reset --hard $REMOTE/$TRACK ||
-           die "Could not reset your $TRACK branch to $REMOTE/$TRACK."
+    if [[ -z "$change" && "$CURRENT" = "$track" ]] && ask_yes_no "Reset to $remote/$track?" "n"; then
+        git reset --hard $remote/$track ||
+            die "Could not reset your $track branch to $remote/$track."
+    fi
+
+    if [[ -n "$change" ]] ; then
+        if  ask_yes_no "Update the review branch $track?" "y"; then
+            updateChange ||
+                die "Could not update your review branch $track."
+        fi
+        #$GIT branch -D "$current.head" 2>/dev/null
     fi
 
     if [[ "$run" = true ]]; then
@@ -565,10 +618,10 @@ pushCommit() {
             fi
         fi
 
-        if [[ "$CURRENT" = "$TRACK" ]]; then
-            good "Successfully pushed '$LOG' for review and reset $TRACK"
+        if [[ "$current" = "$track" ]]; then
+            good "Successfully pushed '$log' for review and reset $track"
         else
-            good "Successfully pushed '$LOG' for review"
+            good "Successfully pushed '$log' for review"
         fi
     fi
 }
