@@ -572,10 +572,11 @@ pushCommit() {
 
     git_push_output=$(test -f $GIT_OUTPUT_FILE && cat $GIT_OUTPUT_FILE)
 
-    if [[ -z "$change" && "$CURRENT" = "$track" ]] && ask_yes_no "Reset to $remote/$track?" "n"; then
-        git reset --hard $remote/$track ||
-            die "Could not reset your $track branch to $remote/$track."
-    fi
+    # disable the Reset prompt.
+    # if [[ -z "$change" && "$CURRENT" = "$track" ]] && ask_yes_no "Reset to $remote/$track?" "n"; then
+    #     git reset --hard $remote/$track ||
+    #         die "Could not reset your $track branch to $remote/$track."
+    # fi
 
     if [[ -n "$change" ]] ; then
         if  ask_yes_no "Update the review branch $track?" "y"; then
