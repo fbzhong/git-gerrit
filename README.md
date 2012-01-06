@@ -55,6 +55,20 @@ And looks like this for people reviewing someone else's changeset:
     // reset
     git gerrit reset
 
+When we have to update and re-submit the changeset according to the code review result, we can do like that:
+
+    // apply change for review
+    git gerrit apply 123
+    
+    // let's update the code and commit locally, just like development.
+    vim ... ; git commit ; ...
+    
+    // ok, time to submit changeset again.
+    git gerrit push
+    // your changes are already submit to gerrit.
+    
+    // update current review branch if you press n before.
+    git gerrit update
 
 ### Usage
 
