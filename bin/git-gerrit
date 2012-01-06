@@ -671,13 +671,13 @@ queryChanges() {
         operators="status:open"
     fi
     getGerritServerAndProject
-    executeGerritCommand "query" "--current-patch-set" "project:${project}" $operators
+    executeGerritCommand "query" "--current-patch-set" "--all-approvals" "project:${project}" $operators
     echo "$gerrit_command_result" | less -FRSX
 }
 
 queryChangesDetail() {
     getGerritServerAndProject
-    executeGerritCommand "query" "--current-patch-set" "--patch-sets" "change:'$1'" "project:${project}"
+    executeGerritCommand "query" "--current-patch-set" "--all-approvals" "--patch-sets" "change:'$1'" "project:${project}"
     echo "$gerrit_command_result" | less -FRSX
 }
 
