@@ -66,7 +66,6 @@ And looks like this for people reviewing someone else's changeset:
        or: git-gerrit [<options>] apply <change number>
        or: git-gerrit [<options>] reset [-f]
        or: git-gerrit [<options>] update
-       or: git-gerrit [<options>] rebase <change number>
        or: git-gerrit [<options>] patchset [<git-diff options>] [<commit>]
        or: git-gerrit [<options>] diff <patchset1> [<patchset2>]
        or: git-gerrit [<options>] review
@@ -127,12 +126,6 @@ And looks like this for people reviewing someone else's changeset:
 
     update
       Updates the review branch that you are currently on to the latest patch.
-
-    rebase [<change number>]
-      Rebases the latest patch for a given change number (or the current change branch)
-      against tracking branch, then submits it as a new patch to that change.
-      This helps deal with Gerrit's "Your change could not be merged due to a path
-      conflict" error message.
 
     patchset [<git-diff options>] [<commit>]
         Display a diff between the top of previous branch and <commit>. <commit> will
