@@ -292,28 +292,6 @@ resetChange() {
     fi
 }
 
-rebaseChange() {
-    abort_on_bad_repo_state
-
-    if [[ -z "$CHANGE" ]]; then
-        printShortUsage
-        die "Please provide a change number to rebase."
-    fi
-
-    if ! is_review_branch $CURRENT; then
-        # if not already on a review branch, fetch and check it out
-        applyChange
-    fi
-
-    # try to push this patch along
-    pushCommit
-
-    # reset if we weren't already on a review branch
-    if ! is_review_branch $CURRENT; then
-        resetChange
-    fi
-}
-
 updateChange() {
     if ! is_review_branch $CURRENT; then
         warn "$CURRENT is not a review branch"
@@ -714,7 +692,6 @@ Usage: $this [<options>] init
    or: $this [<options>] apply <change number>
    or: $this [<options>] reset [-f]
    or: $this [<options>] update
-   or: $this [<options>] rebase <change number>
    or: $this [<options>] patchset [<git-diff options>] [<commit>]
    or: $this [<options>] diff <patchset1> [<patchset2>]
    or: $this [<options>] review
@@ -793,12 +770,6 @@ DESCRIPTION
 
   update
     Updates the review branch that you are currently on to the latest patch.
-
-  rebase [<change number>]
-    Rebases the latest patch for a given change number (or the current change branch)
-    against tracking branch, then submits it as a new patch to that change.
-    This helps deal with Gerrit's "Your change could not be merged due to a path
-    conflict" error message.
 
   patchset [<git-diff options>] [<commit>]
     Display a diff between the top of previous branch and <commit>. <commit> will
