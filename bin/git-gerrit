@@ -141,11 +141,11 @@ ask_yes_no() {
 GERRIT_TRACK="${GIT_DIR}/GERRIT_TRACK"
 
 set_track() {
-    local branch="$1" track="$2" track_commit="$3"
+    local branch="$1" from_branch="$2" remote"$3" track="$4" track_commit="$5"
 
     remove_track "$branch"
 
-    echo "$branch:$track:$track_commit" >> $GERRIT_TRACK
+    echo "$branch:$from_branch:$remote:$track:$track_commit" >> $GERRIT_TRACK
 }
 
 remove_track() {
@@ -234,17 +234,20 @@ getBranchInfo() {
         TRACK=${TRACK#refs/heads/}
     fi
 
-    if [[ -z "$TRACK" ]]; then
-        if [[ -e "$GERRIT_TRACK" ]]; then
-            local data=($(fgrep "$CURRENT:" "$GERRIT_TRACK" | awk -F: '{print $2" "$3}'))
-            TRACK=${data[0]}
-            TRACK_COMMIT=${data[1]}
+    if [[ -e "$GERRIT_TRACK" ]]; then
+        local data=($(fgrep "$CURRENT:" "$GERRIT_TRACK" | awk -F: '{print $2" "$3" "$4" "$5}'))
+        if [[ -n "${data[0]}" ]] ; then
+            FROM_BRANCH=${data[0]}
+            REMOTE=${data[1]}
+            TRACK=${data[2]}
+            TRACK_COMMIT=${data[3]}
         fi
-        if [[ -z "$TRACK" ]]; then
-            TRACK=$CURRENT
-        fi
-        ORIG_TRACK=$TRACK
     fi
+
+    if [[ -z "$TRACK" ]]; then
+        TRACK=$CURRENT
+    fi
+    ORIG_TRACK=$TRACK
 }
 
 # git gerrit apply 100
@@ -252,21 +255,23 @@ applyChange() {
     abort_on_bad_repo_state
 
     # create a new branch based on the current tracking branch to work in
-    local branch=r$CHANGE
+    local change=$CHANGE branch=r$CHANGE current="$CURRENT"
+    local remote="$REMOTE" track="$TRACK" track_branch="$REMOTE/$TRACK"
+
     $GIT branch -D $branch 2>/dev/null 1>&2
-    git checkout -b $branch $TRACK ||
+    git checkout -b $branch $track_branch ||
         die "Unable to create a new branch '$branch'"
 
     # track original branch.
-    set_track $branch $TRACK "$($GIT rev-parse $TRACK)"
+    set_track $branch $current $remote $track "$($GIT rev-parse $track_branch)"
 
     # apply the change to the new branch
-    local patch="$(patch_count_for_change $CHANGE)"
-    gerrit-cherry-pick $REMOTE $CHANGE/$patch ||
-        die "Unable to apply ±$CHANGE/$patch on top of $TRACK"
+    local patch="$(patch_count_for_change $change)"
+    gerrit-cherry-pick $remote $change/$patch ||
+        die "Unable to apply ±$change/$patch on top of $track_branch"
 
     if [[ "$verbose" = true ]]; then
-        good "Successfully cherry-picked ±$CHANGE so you can begin reviewing it"
+        good "Successfully cherry-picked ±$change so you can begin reviewing it"
     fi
 }
 
@@ -278,17 +283,20 @@ resetChange() {
         abort_on_bad_repo_state
     fi
 
+    local current="$CURRENT" from_branch="$FROM_BRANCH"
+    local remote="$REMOTE" track="$TRACK" track_branch="$REMOTE/$TRACK"
+
     # clean up after gerrit-cherry-pick if it failed
     rm -rf "$GIT_DIR/rebase-gerrit"
 
     # clean up TRACK file
-    remove_track "$CURRENT"
+    remove_track "$current"
 
     if [[ ${CURRENT:0:1} == "r" ]] && is_integer ${CURRENT:1}; then
-        git checkout $TRACK && git branch -D $CURRENT ||
-            die "Unable to close the review branch $CURRENT"
+        git checkout $from_branch && git branch -D $current ||
+            die "Unable to close the review branch $current"
     else
-        die "We are not on a review branch ($CURRENT)"
+        die "We are not on a review branch ($current)"
     fi
 }
 
@@ -304,12 +312,16 @@ updateChange() {
     CHANGE=${CURRENT:1}
     resetChange
     TRACK="$ORIG_TRACK"
+    CURRENT="$FROM_BRANCH"
     applyChange
 }
 
 showPatchSetDiff() {
     get_change_number_from_branch ||
         die "Unable to get change number from $CURRENT"
+
+    local current="$CURRENT" from_branch="$FROM_BRANCH"
+    local remote="$REMOTE" track="$TRACK" track_branch="$REMOTE/$TRACK"
 
     local params=($@)
     local params_len=${#params[@]}
@@ -326,7 +338,7 @@ showPatchSetDiff() {
         unset params[${#params[@]}-1]
     fi
 
-    local args="diff $params $TRACK..$commit"
+    local args="diff $params $track_branch..$commit"
     if [[ "$verbose" = true ]]; then
         echo -e "+ ${GREEN}git $args${NO_COLOR}"
     fi
@@ -336,6 +348,9 @@ showPatchSetDiff() {
 diffPatches() {
     get_change_number_from_branch ||
         die "Unable to get change number from $CURRENT"
+
+    local current="$CURRENT" from_branch="$FROM_BRANCH"
+    local remote="$REMOTE" track="$TRACK" track_branch="$REMOTE/$TRACK"
 
     local change=$CHANGE
     local changeref=refs/remotes/changes/${change:(-2)}/$change
@@ -376,16 +391,16 @@ diffPatches() {
     local branch2="r$change,$patch2"
 
     # create a branch for patch1
-    git checkout -b $branch1 $TRACK >/dev/null 2>&1 ||
+    git checkout -b $branch1 $track_branch >/dev/null 2>&1 ||
         die "Unable to create a new branch '$branch1'"
-    gerrit-cherry-pick $REMOTE $change/$patch1 >/dev/null 2>&1 ||
-        die "Unable to apply ±$branch1 on top of $TRACK"
+    gerrit-cherry-pick $remote $change/$patch1 >/dev/null 2>&1 ||
+        die "Unable to apply ±$branch1 on top of $track_branch"
 
     # create a branch for patch2
-    git checkout -b $branch2 $TRACK >/dev/null 2>&1 ||
+    git checkout -b $branch2 $track_branch >/dev/null 2>&1 ||
         die "Unable to create a new branch '$branch2'"
-    gerrit-cherry-pick $REMOTE $change/$patch2 >/dev/null 2>&1 ||
-        die "Unable to apply ±$branch2 on top of $TRACK"
+    gerrit-cherry-pick $remote $change/$patch2 >/dev/null 2>&1 ||
+        die "Unable to apply ±$branch2 on top of $track_branch"
 
     # actually show the diff
     git diff --src-prefix=$branch1: --dst-prefix=$branch2: --color $branch1 $branch2 > $GIT_OUTPUT_FILE
@@ -408,7 +423,10 @@ reviewChange() {
 
     getGerritServerAndProject
 
-    local LOG=$($GIT log --pretty="format:%s" $REMOTE/$TRACK..HEAD)
+    local current="$CURRENT" from_branch="$FROM_BRANCH"
+    local remote="$REMOTE" track="$TRACK" track_branch="$REMOTE/$TRACK"
+
+    local LOG=$($GIT log --pretty="format:%s" $track_branch..HEAD)
     good "Reviewing '$LOG'..."
 
     local zero="0"
@@ -445,7 +463,10 @@ submitChange() {
 
     getGerritServerAndProject
 
-    local LOG=$($GIT log --pretty="format:%s" $REMOTE/$TRACK..HEAD)
+    local current="$CURRENT" from_branch="$FROM_BRANCH"
+    local remote="$REMOTE" track="$TRACK" track_branch="$REMOTE/$TRACK"
+
+    local LOG=$($GIT log --pretty="format:%s" $track_branch..HEAD)
     good "Submiting '$LOG'..."
 
     echo "You may supply a message. Hit return once your are done."
@@ -474,7 +495,10 @@ abandonChange() {
 
     getGerritServerAndProject
 
-    local LOG=$($GIT log --pretty="format:%s" $REMOTE/$TRACK..HEAD)
+    local current="$CURRENT" from_branch="$FROM_BRANCH"
+    local remote="$REMOTE" track="$TRACK" track_branch="$REMOTE/$TRACK"
+
+    local LOG=$($GIT log --pretty="format:%s" $track_branch..HEAD)
     good "Abandoning '$LOG'..."
 
     echo "You may supply a message. Hit return once your are done."
