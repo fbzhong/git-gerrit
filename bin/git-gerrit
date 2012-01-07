@@ -270,9 +270,9 @@ applyChange() {
         if has_remote_branch $remote $current ; then
             track="$current"
         else
-            local msg="Your current branch current has no remote merge branch."
-            local msg="${msg}\nUse the following command:"
-            local msg="${msg}\ngit branch --set-upstream $current [REMOTE MERGE BRANCH]."
+            local msg="Your may forget set upstream branch for branch ${GREEN}$current${RED}."
+            local msg="${msg}\nType the following command to set:"
+            local msg="${msg}\n${GREEN}git branch --set-upstream $current${RED} [upstream]."
             die $msg
         fi
     fi
