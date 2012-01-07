@@ -104,6 +104,12 @@ is_integer() {
     return $?
 }
 
+has_remote_branch() {
+    local remote=$1 branch=$2
+    $GIT branch -r | grep "$remote/$branch" > /dev/null
+    return $?
+}
+
 is_review_branch() {
     local branch=$1
     if [[ "${branch:0:1}" = "r" ]]; then
@@ -232,6 +238,7 @@ getBranchInfo() {
 
     if [[ -n "$TRACK" ]]; then
         TRACK=${TRACK#refs/heads/}
+        IS_TRACKING_REMOTE=y
     fi
 
     if [[ -e "$GERRIT_TRACK" ]]; then
@@ -254,10 +261,25 @@ getBranchInfo() {
 applyChange() {
     abort_on_bad_repo_state
 
-    # create a new branch based on the current tracking branch to work in
     local change=$CHANGE branch=r$CHANGE current="$CURRENT"
-    local remote="$REMOTE" track="$TRACK" track_branch="$REMOTE/$TRACK"
+    local remote="$REMOTE" track="$TRACK"
 
+    # IS_TRACKING_REMOTE
+    if [[ -z "$IS_TRACKING_REMOTE" ]] ; then
+        # not tracking remote, let's guess.
+        if has_remote_branch $remote $current ; then
+            track="$current"
+        else
+            local msg="Your current branch current has no remote merge branch."
+            local msg="${msg}\nUse the following command:"
+            local msg="${msg}\ngit branch --set-upstream $current [REMOTE MERGE BRANCH]."
+            die $msg
+        fi
+    fi
+
+    local track_branch="$remote/$track"
+
+    # create a new branch based on the current tracking branch to work in
     $GIT branch -D $branch 2>/dev/null 1>&2
     git checkout -b $branch $track_branch ||
         die "Unable to create a new branch '$branch'"
