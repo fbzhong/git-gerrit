@@ -546,6 +546,7 @@ pushCommit() {
 
     local remote="$1" refs="$2" change="$CHANGE" current="$CURRENT" track
     local prompt_track=n
+    local disable_reset_prompt=y
 
     # parse remote and refs parameters.
     if [ -z "$remote" ] ; then
@@ -618,11 +619,10 @@ pushCommit() {
 
     git_push_output=$(test -f $GIT_OUTPUT_FILE && cat $GIT_OUTPUT_FILE)
 
-    # disable the Reset prompt.
-    # if [[ -z "$change" && "$CURRENT" = "$track" ]] && ask_yes_no "Reset to $remote/$track?" "n"; then
-    #     git reset --hard $remote/$track ||
-    #         die "Could not reset your $track branch to $remote/$track."
-    # fi
+    if [[ "$disable_reset_prompt" != "y" && -z "$change" && "$CURRENT" = "$track" ]] && ask_yes_no "Reset to $remote/$track?" "n"; then
+        git reset --hard $remote/$track ||
+        die "Could not reset your $track branch to $remote/$track."
+    fi
 
     if [[ -n "$change" ]] ; then
         if  ask_yes_no "Update the review branch $track?" "y"; then
@@ -643,7 +643,7 @@ pushCommit() {
             fi
         fi
 
-        if [[ "$current" = "$track" ]]; then
+        if [[ "$disable_reset_prompt" != "y" && "$current" = "$track" ]]; then
             good "Successfully pushed '$log' for review and reset $track"
         else
             good "Successfully pushed '$log' for review"
