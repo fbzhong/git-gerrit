@@ -126,7 +126,7 @@ When we have to update and re-submit the changeset according to the code review 
       Gerrit Code Review - Searching Changes http://gerrit.googlecode.com/svn/documentation/2.2.1/user-search.html
 
     apply <change number>
-      Applies the latest patch for the change at <change number> on top of the current
+      Applies the latest patch for the <change number> change on "upstream" of the current
       branch, if it's a tracking branch, or master on a branch named for <change number>,
       allowing you to review the change.
 
