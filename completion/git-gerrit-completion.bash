@@ -47,7 +47,7 @@
 
 _git_gerrit ()
 {
-    local subcommands="init merge push changes apply reset update patchset diff review submit abandon"
+    local subcommands="init merge push changes apply reset update patchset diff review submit abandon open"
     local subcommand="$(__git_find_on_cmdline "$subcommands")"
     if [ -z "$subcommand" ]; then
         __gitcomp "$subcommands"

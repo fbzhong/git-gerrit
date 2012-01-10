@@ -59,20 +59,21 @@ When we have to update and re-submit the changeset according to the code review 
 
     // apply change for review
     git gerrit apply 123
-    
+
     // let's update the code and commit locally, just like development.
     vim ... ; git commit ; ...
-    
+
     // ok, time to submit changeset again.
     git gerrit push
     // your changes are already submit to gerrit.
-    
+
     // update current review branch if you press n before.
     git gerrit update
 
 ### Usage
 
     Usage: git-gerrit [<options>] init
+       or: git-gerrit [<options>] open [<change number>]
        or: git-gerrit [<options>] merge <branch>
        or: git-gerrit [<options>] push [<repository>] [<refspec>]
        or: git-gerrit [<options>] changes [<search operators>]
@@ -87,7 +88,11 @@ When we have to update and re-submit the changeset according to the code review 
        or: git-gerrit [<options>] abandon
 
     init
-      init the gerrit hook.
+      Init the gerrit hook.
+
+    open
+      Open current change or <change number> in browser, if the BROWSER environment
+      variable is set. Otherwise the URL will be displayed.
 
     merge <branch>
       Merge the current gerrit branch with the <branch>, with squashing commit.

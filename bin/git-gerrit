@@ -637,11 +637,10 @@ pushCommit() {
         url=$(echo "$git_push_output" | grep http | head -n1)
 
         if [[ -n "$url" ]]; then
-            if [[ -n "$BROWSER" ]]; then
-                eval "$BROWSER $url"
-            else
-                good $url
-            fi
+            # if [[ -n "$BROWSER" ]]; then
+            #     eval "$BROWSER $url"
+            # fi
+            good $url
         fi
 
         if [[ "$disable_reset_prompt" != "y" && "$current" = "$track" ]]; then
@@ -713,6 +712,41 @@ initGerrit() {
     echo "gerrit commit-msg hook setup correctly."
 }
 
+openChange() {
+    local change="$CHANGE" user_change="$1" open_chagne="" ok=""
+
+    if [[ -n "$user_change" ]] ; then
+        if is_integer "$user_change" ; then
+            open_change="$user_change"
+        else
+            ok="n"
+        fi
+    elif is_integer "$change" ; then
+        open_chagne="$change"
+    else
+        ok="n"
+    fi
+
+    if [[ "$ok" = "n" ]]; then
+        die "Your must specify change number, or at review branch."
+    fi
+
+    # get url from gerrit.
+    getGerritServerAndProject
+    executeGerritCommand "query" "project:${project}" "change:$change"
+
+    url=$(echo "$gerrit_command_result" | grep http | head -n1 | awk '{print $2}')
+
+    if [[ -n "$url" ]]; then
+        if [[ -n "$BROWSER" ]]; then
+            eval "$BROWSER $url"
+        fi
+        good $url
+    else
+        warn "Could not find URL for change $change."
+    fi
+}
+
 queryChanges() {
     local operators=$@
     if [ "" = "$1" ] ; then
@@ -733,6 +767,7 @@ queryChangesDetail() {
 printShortUsage() {
     cat << EOF
 Usage: $this [<options>] init
+   or: $this [<options>] open [<change number>]
    or: $this [<options>] merge <branch>
    or: $this [<options>] push [<repository>] [<refspec>]
    or: $this [<options>] changes [<search operators>]
@@ -766,7 +801,11 @@ DESCRIPTION
   pushing or pulling changesets to review.
 
   init
-    init the gerrit hook.
+    Init the gerrit hook.
+
+  open
+    Open current change or <change number> in browser, if the BROWSER environment
+    variable is set. Otherwise the URL will be displayed.
 
   merge <branch>
     Merge the current gerrit branch with the <branch>, with squashing commit.
@@ -782,10 +821,6 @@ DESCRIPTION
 
     If you are on a review branch , the current patch will be added as a new patchset, following
     the same reset rules as above.
-
-    NOTE: If the BROWSER environment variable is set, the Gerrit page for the pushed
-    change will be opened in that browser (e.g. "open" or "/usr/local/bin/firefox"),
-    otherwise the URL will be displayed.
 
   changes [<change number>]
     Show the detail of specific <change number>.
@@ -881,6 +916,10 @@ while true; do
             ;;
         init)
             initGerrit
+            exit
+            ;;
+        open)
+            openChange $@
             exit
             ;;
         changes)
