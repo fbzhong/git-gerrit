@@ -271,6 +271,7 @@ applyChange() {
             track="$current"
         else
             local msg="Your may forget set upstream branch for branch ${GREEN}$current${RED}."
+            local msg="${msg}\nSince the changes ${GREEN}$change${RED} must be applied on proper remote branch."
             local msg="${msg}\nType the following command to set:"
             local msg="${msg}\n${GREEN}git branch --set-upstream $current${RED} [upstream]."
             die $msg
