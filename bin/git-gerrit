@@ -587,10 +587,9 @@ pushCommit() {
     if [[ -n "$change" ]] ; then
         # squash commits for submit change patch set.
         #$GIT branch -f "$current.head"
+        local msg="$($GIT log --pretty=format:'%B' $remote/$track..HEAD)"
 
-        local msg="$($GIT log --pretty=format:'%B' $track..HEAD)"
-
-        $GIT reset --soft $track
+        $GIT reset --soft $remote/$track
         $GIT commit -m "$msg"
     else
         # pull --rebase to make sure pushed commit bases on correct parent.
