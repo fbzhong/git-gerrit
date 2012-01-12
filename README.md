@@ -102,17 +102,11 @@ When we have to update and re-submit the changeset according to the code review 
       If you are not on a review branch, you need to confirm the <refspec> to push to and
       you may choose a topic.
 
-      If your HEAD is a tracking branch $this will promt to reset it to the remote
-      branch after successfully pushing the changeset.
-      If you are working on a non-tracking branch, that branch will be left alone.
+      If you are not on a review branch, $this will execute 'git pull --rebase' to make sure
+      your HEAD is up to date.
 
-      If you are on a review branch or if you have specified a change number with -c
-      (see above), the current patch will be added as a new patchset, following
+      If you are on a review branch , the current patch will be added as a new patchset, following
       the same reset rules as above.
-
-      NOTE: If the BROWSER environment variable is set, the Gerrit page for the pushed
-      change will be opened in that browser (e.g. "open" or "/usr/local/bin/firefox"),
-      otherwise the URL will be displayed.
 
     changes [<change number>]
       Show the detail of specific <change number>.
