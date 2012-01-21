@@ -95,6 +95,9 @@ _cleanup_git_output() {
 }
 
 no_changes () {
+    # $GIT diff-index --quiet --cached HEAD -- &&
+    #     $GIT diff-files --quiet
+    $GIT update-index --refresh --unmerged -q >/dev/null
     $GIT diff-index --quiet --cached HEAD -- &&
         $GIT diff-files --quiet
 }
