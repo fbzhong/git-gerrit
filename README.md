@@ -7,6 +7,12 @@ This project is forked from my [gerrit-tools](https://github.com/fbzhong/gerrit-
 
 ## Change Logs
 
+    v0.3.0
+        + squashing push commit to refs/changes/<number> in review branch.
+        + add --all-approvals in changes command.
+        - remove rebase command.
+        * bug fixing.
+
     v0.2.0
         + patchset command.
         + more bash completion support.
