@@ -608,11 +608,11 @@ pushCommit() {
     if [[ "$run" = true ]]; then
         if [[ "$changesets" = "0" ]]; then
             die "You have no changes to review. Are you on the right branch?"
-        elif [[ "$changesets" != "1" ]]; then
-            warn "You have $changesets changes, but you should only push one at a time. Did you forget to squash your commits?"
-            if ! ask_yes_no "Continue?"; then
-                die "Existing"
-            fi
+        # elif [[ "$changesets" != "1" ]]; then
+        #     warn "You have $changesets changes, but you should only push one at a time. Did you forget to squash your commits?"
+        #     if ! ask_yes_no "Continue?"; then
+        #         die "Existing"
+        #     fi
         fi
     fi
 
