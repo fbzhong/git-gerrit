@@ -546,7 +546,8 @@ abandonChange() {
 
 # git gerrit push
 pushCommit() {
-    abort_on_bad_repo_state
+    # ignore the repo state check.
+    # abort_on_bad_repo_state
 
     local remote="$1" refs="$2" change="$CHANGE" current="$CURRENT" track
     local prompt_track=n
@@ -588,6 +589,8 @@ pushCommit() {
     fi
 
     if [[ -n "$change" ]] ; then
+        abort_on_bad_repo_state
+
         # squash commits for submit change patch set.
         #$GIT branch -f "$current.head"
         local msg="$($GIT log --pretty=format:'%s%n%b%n%n' $remote/$track..HEAD)"
@@ -598,7 +601,7 @@ pushCommit() {
         # pull --rebase to make sure pushed commit bases on correct parent.
         local msg="Unable to pull and rebase your branch $track to the $remote/$track."
         local msg="${msg}\nPlease resolve the pull issue and try again."
-        git pull --rebase $remote || die "$msg"
+        # git pull --rebase $remote || die "$msg"
     fi
 
     local log=$($GIT log --pretty="format:%s" $remote/$track..HEAD)
