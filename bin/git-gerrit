@@ -717,7 +717,8 @@ initGerrit() {
     fi
 
     getGerritServerAndProject
-    scp $port $host:hooks/commit-msg "${commit_hook}" || die "failed to add gerrit commit-msg hook."
+    local port_upper=`echo ${port} | awk '{print toupper($0)}'`
+    scp $port_upper $host:hooks/commit-msg "${commit_hook}" || die "failed to add gerrit commit-msg hook."
     chmod +x "${commit_hook}"
     echo "gerrit commit-msg hook setup correctly."
 }
