@@ -220,14 +220,11 @@ getGerritServerAndProject() {
     project=${project%.git}
 
     port=${port%/*}
-    if [[ ! -z "$port" ]]; then
-      port="-p $port"
-    fi
 }
 
 executeGerritCommand() {
     getGerritServerAndProject
-    gerrit_command_result=$($SSH $port $host gerrit $@)
+    gerrit_command_result=$($SSH -p $port $host gerrit $@)
 }
 
 getBranchInfo() {
@@ -465,7 +462,7 @@ reviewChange() {
     echo "You may supply a message. Hit return once your are done."
     read -e -p "Message: " MESSAGE
 
-    local CMD="$host $port gerrit review"
+    local CMD="$host -p $port gerrit review"
     CMD="$CMD --verified=$VERIFIED"
     CMD="$CMD --code-review=$CODE_REVIEW"
     CMD="$CMD --project=$project $CHANGE,$PATCH"
@@ -498,7 +495,7 @@ submitChange() {
     echo "You may supply a message. Hit return once your are done."
     read -e -p "Message: " MESSAGE
 
-    local CMD="$host $port gerrit review"
+    local CMD="$host -p $port gerrit review"
     CMD="$CMD --submit"
     CMD="$CMD --project=$project $CHANGE,$PATCH"
     if [[ -n $MESSAGE ]]; then
@@ -530,7 +527,7 @@ abandonChange() {
     echo "You may supply a message. Hit return once your are done."
     read -e -p "Message: " MESSAGE
 
-    local CMD="$host $port gerrit review"
+    local CMD="$host -p $port gerrit review"
     CMD="$CMD --abandon"
     CMD="$CMD --project=$project $CHANGE,$PATCH"
     if [[ -n $MESSAGE ]]; then
@@ -717,7 +714,7 @@ initGerrit() {
     fi
 
     getGerritServerAndProject
-    scp $port $host:hooks/commit-msg "${commit_hook}" || die "failed to add gerrit commit-msg hook."
+    scp -P $port $host:hooks/commit-msg "${commit_hook}" || die "failed to add gerrit commit-msg hook."
     chmod +x "${commit_hook}"
     echo "gerrit commit-msg hook setup correctly."
 }
