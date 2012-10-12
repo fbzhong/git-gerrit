@@ -21,13 +21,24 @@ if [ "Darwin" = "$name" ] ; then
 fi
 
 # copy bin.
-sudo cp $src_bin/* "$dst_bin"
+echo "installing git-gerrit to /usr/local/bin..."
+if [ -w "$dst_bin" ]; then
+    cp $src_bin/* "$dst_bin"
+else
+    echo "request sudo authorization to install git-gerrit to /usr/local/bin:"
+    sudo cp $src_bin/* "$dst_bin"
+fi
 
 if [ ! -d "$dst_completion" ] ; then
     mkdir -p "$dst_completion"
 fi
 
 # copy bash-completion.
-sudo cp $src_completion/* "$dst_completion"
+if [ -w "$dst_completion" ]; then
+    cp $src_completion/* "$dst_completion"
+else
+    echo "request sudo authorization to install git-gerrit to /usr/local/bin:"
+    sudo cp $src_completion/* "$dst_completion"
+fi
 
 echo "git-gerrit install success."
