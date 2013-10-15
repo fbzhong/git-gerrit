@@ -162,7 +162,7 @@ remove_track() {
         return
     fi
     local branch="${1:-$CURRENT}"
-    sed -i '' -e "/$branch:/d" "$GERRIT_TRACK"
+    sed -i -e "/$branch:/d" "$GERRIT_TRACK"
 }
 
 get_change_number_from_branch() {
