@@ -56,6 +56,8 @@ mark_done() {
   then
     echo $head_after >"$CL/$changeid"
   fi
+  # fix for git 1.8, may introduce bug on other versions
+  git rebase --continue
   pop_action
 }
 
