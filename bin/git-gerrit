@@ -870,7 +870,7 @@ DESCRIPTION
   update
     Updates the review branch that you are currently on to the latest patch.
 
-  patchset [<git-diff options>] [<git-difftool options>] [<commit>]
+  patchset [<git-diff options>] [-t <git-difftool options>] [<commit>]
     Display a diff between the top of previous branch and <commit>. <commit> will
     be HEAD when <commit> is not specified.
     Use -t to use git-difftool.
