@@ -346,6 +346,12 @@ showPatchSetDiff() {
     get_change_number_from_branch ||
         die "Unable to get change number from $CURRENT"
 
+    local diff_arg="diff"
+    if [[ "$1" == "-t" ]]; then
+        local diff_arg="difftool"
+        shift
+    fi
+
     local current="$CURRENT" from_branch="$FROM_BRANCH"
     local remote="$REMOTE" track="$TRACK" track_branch="$REMOTE/$TRACK"
 
@@ -364,7 +370,7 @@ showPatchSetDiff() {
         unset params[${#params[@]}-1]
     fi
 
-    local args="diff $params $track_branch..$commit"
+    local args="$diff_arg $params $track_branch..$commit"
     if [[ "$verbose" = true ]]; then
         echo -e "+ ${GREEN}git $args${NO_COLOR}"
     fi
@@ -864,9 +870,10 @@ DESCRIPTION
   update
     Updates the review branch that you are currently on to the latest patch.
 
-  patchset [<git-diff options>] [<commit>]
+  patchset [<git-diff options>] [-t <git-difftool options>] [<commit>]
     Display a diff between the top of previous branch and <commit>. <commit> will
     be HEAD when <commit> is not specified.
+    Use -t to use git-difftool.
 
   diff [<patch number> [<patch number>]]
     Depending of the number of arguments, displays a diff of
