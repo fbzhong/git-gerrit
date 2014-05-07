@@ -832,9 +832,6 @@ DESCRIPTION
     If you are not on a review branch, you need to confirm the <refspec> to push to and
     you may choose a topic.
 
-    If you are not on a review branch, $this will execute 'git pull --rebase' to make sure
-    your HEAD is up to date.
-
     If you are on a review branch , the current patch will be added as a new patchset, following
     the same reset rules as above.
 
