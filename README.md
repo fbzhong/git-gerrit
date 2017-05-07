@@ -193,7 +193,7 @@ or clone to local, then
 
 Feel free to fork and send a pull request if you think you've improved anything.
 
-##New BSD License
+## New BSD License
 
 Copyright (c) 2012, Robin Zhong <fbzhong@gmail.com>
 All rights reserved.
