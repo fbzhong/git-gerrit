@@ -137,7 +137,7 @@ When we have to update and re-submit the changeset according to the code review 
       back to tracking branch.
       Use -f to reset if the current branch has uncommitted changes, otherwise reset will
       refuse to do this.
-      If the the current branch does not start with "r" followed by an integer, nothing
+      If the current branch does not start with "r" followed by an integer, nothing
       will be done and $this exists with an error.
 
     update
